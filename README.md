@@ -1,135 +1,147 @@
 import datetime
-from tabulate import tabulate
-from functools import reduce
-
 
 users = [
-    {
-        'username': 'admin_user',
-        'password': 'admin',
-        'role': 'admin',
-        'created_at': '2024-01-01'
-    },
-    {
-        'username': 'john_doe',
-        'password': 'user123',
-        'role': 'user',
-        'subscription_type': 'Premium',
-        'booking_history': [],
-        'created_at': '2024-09-01'
-    }
+    {'username': 'kuzminator', 'password': '3388', 'role': 'admin', 'created_at': '2024-01-01'},
+    {'username': 'dub', 'password': '123', 'role': 'user', 'history': [], 'created_at': '2024-01-02'}
 ]
 
-
-rooms = [
-    {'id': 1, 'name': 'Стандартный номер', 'price': 3000, 'rating': 4.2, 'date_added': '2024-12-01'},
-    {'id': 2, 'name': 'Люкс', 'price': 7000, 'rating': 4.8, 'date_added': '2024-12-05'},
-    {'id': 3, 'name': 'Семейный номер', 'price': 5000, 'rating': 4.5, 'date_added': '2024-12-10'}
+services = [
+    {'id': 1, 'name': 'Стандартный номер', 'price': 3000, 'rating': 4.5, 'available': True},
+    {'id': 2, 'name': 'Люкс', 'price': 7000, 'rating': 4.8, 'available': True}
 ]
-
 
 def authenticate():
-    print("Добро пожаловать в гостиницу!")
+    """Функция авторизации пользователя."""
+    print("Добро пожаловать в систему управления гостиницей!")
+    username = input("Логин: ").strip()
+    password = input("Пароль: ").strip()
+
+    for user in users:
+        if user['username'] == username and user['password'] == password:
+            print(f"Добро пожаловать, {username} ({user['role']})!\n")
+            return user
+    print("Неверный логин или пароль. Попробуйте снова.\n")
+    return None
+
+def view_services():
+    """Просмотр доступных услуг."""
+    print("Доступные услуги:\n")
+    for service in services:
+        print(f"ID: {service['id']} | Название: {service['name']} | Цена: {service['price']} руб. | Рейтинг: {service['rating']} | {'Доступно' if service['available'] else 'Недоступно'}")
+    print()
+
+def sort_services():
+    """Сортировка услуг по критериям."""
+    print("Критерии сортировки:")
+    print("1. По цене")
+    print("2. По рейтингу")
+    choice = input("Выберите критерий: ").strip()
+    if choice == '1':
+        sorted_services = sorted(services, key=lambda x: x['price'])
+    elif choice == '2':
+        sorted_services = sorted(services, key=lambda x: x['rating'], reverse=True)
+    else:
+        print("Некорректный выбор.")
+        return
+    print("Отсортированные услуги:")
+    for service in sorted_services:
+        print(f"ID: {service['id']} | Название: {service['name']} | Цена: {service['price']} руб. | Рейтинг: {service['rating']}\n")
+
+def user_menu(user):
+    """Меню пользователя."""
     while True:
-        username = input("Логин (или 'exit' для выхода): ").strip()
-        if username.lower() == 'exit':
-            print("Выход из программы.")
-            return None
+        print("Меню пользователя:")
+        print("1. Просмотреть доступные услуги")
+        print("2. Сортировать услуги")
+        print("3. Посмотреть историю бронирований")
+        print("4. Выйти")
+        choice = input("Выберите действие: ").strip()
 
-        password = input("Пароль: ").strip()
-        for user in users:
-            if user['username'] == username and user['password'] == password:
-                print(f"\nДобро пожаловать, {username} ({user['role']})!\n")
-                return user
-
-        print("Неверный логин или пароль. Попробуйте снова.")
-
-
-def user_menu():
-    while True:
-        print("\nВыберите действие:")
-        print("1. Просмотреть доступные номера")
-        print("2. Найти номер")
-        print("3. Сортировать номера по цене")
-        print("4. Фильтровать номера по рейтингу")
-        print("5. Вывести названия всех номеров")
-        print("6. Подсчитать общую стоимость всех номеров")
-        print("7. Выйти")
-
-        choice = input("Ваш выбор: ").strip()
         if choice == '1':
-            view_rooms()
+            view_services()
         elif choice == '2':
-            search_room()
+            sort_services()
         elif choice == '3':
-            sort_rooms()
+            print("Ваша история бронирований:")
+            print(user.get('history', []))
         elif choice == '4':
-            filter_rooms_by_rating()
-        elif choice == '5':
-            list_room_names()
-        elif choice == '6':
-            calculate_total_cost()
-        elif choice == '7':
-            print("Выход из пользовательского меню.")
             break
         else:
-            print("Некорректный выбор. Попробуйте снова.")
+            print("Некорректный выбор. Попробуйте снова.\n")
 
-def view_rooms():
-    print("\nДоступные номера:")
-    headers = ["ID", "Название", "Цена", "Рейтинг", "Дата добавления"]
-    table = [[r['id'], r['name'], r['price'], r['rating'], r['date_added']] for r in rooms]
-    print(tabulate(table, headers=headers, tablefmt="grid"))
+def admin_menu():
+    """Меню администратора."""
+    while True:
+        print("Меню администратора:")
+        print("1. Добавить услугу")
+        print("2. Удалить услугу")
+        print("3. Редактировать услугу")
+        print("4. Управление пользователями")
+        print("5. Выйти")
+        choice = input("Выберите действие: ").strip()
 
-def search_room():
-    keyword = input("Введите название номера для поиска: ").lower()
-    results = [r for r in rooms if keyword in r['name'].lower()]
-    if results:
-        print("\nНайденные номера:")
-        headers = ["ID", "Название", "Цена", "Рейтинг", "Дата добавления"]
-        table = [[r['id'], r['name'], r['price'], r['rating'], r['date_added']] for r in results]
-        print(tabulate(table, headers=headers, tablefmt="grid"))
-    else:
-        print("\nНомера не найдены.")
+        if choice == '1':
+            add_service()
+        elif choice == '2':
+            delete_service()
+        elif choice == '3':
+            edit_service()
+        elif choice == '4':
+            manage_users()
+        elif choice == '5':
+            break
+        else:
+            print("Некорректный выбор. Попробуйте снова.\n")
 
-def sort_rooms():
-    sorted_rooms = sorted(rooms, key=lambda r: r['price'])
-    print("\nНомера отсортированы по цене:")
-    headers = ["ID", "Название", "Цена", "Рейтинг", "Дата добавления"]
-    table = [[r['id'], r['name'], r['price'], r['rating'], r['date_added']] for r in sorted_rooms]
-    print(tabulate(table, headers=headers, tablefmt="grid"))
+def add_service():
+    """Добавление новой услуги."""
+    name = input("Введите название услуги: ").strip()
+    price = float(input("Введите цену услуги: ").strip())
+    rating = float(input("Введите рейтинг услуги: ").strip())
+    available = input("Услуга доступна? (yes/no): ").strip().lower() == 'yes'
 
-def filter_rooms_by_rating():
-    try:
-        min_rating = float(input("Введите минимальный рейтинг: "))
-    except ValueError:
-        print("Некорректный ввод. Рейтинг должен быть числом.")
-        return
+    new_service = {
+        'id': len(services) + 1,
+        'name': name,
+        'price': price,
+        'rating': rating,
+        'available': available
+    }
+    services.append(new_service)
+    print("Услуга успешно добавлена!\n")
 
-    filtered = [r for r in rooms if r['rating'] >= min_rating]
-    if filtered:
-        print("\nНомера с рейтингом выше или равным", min_rating)
-        headers = ["ID", "Название", "Цена", "Рейтинг", "Дата добавления"]
-        table = [[r['id'], r['name'], r['price'], r['rating'], r['date_added']] for r in filtered]
-        print(tabulate(table, headers=headers, tablefmt="grid"))
-    else:
-        print("\nНет номеров с таким рейтингом.")
+def delete_service():
+    """Удаление услуги."""
+    service_id = int(input("Введите ID услуги для удаления: ").strip())
+    global services
+    services = [service for service in services if service['id'] != service_id]
+    print("Услуга успешно удалена!\n")
 
-def list_room_names():
-    names = [r['name'] for r in rooms]
-    print("\nНазвания номеров:")
-    for idx, name in enumerate(names, start=1):
-        print(f"{idx}. {name}")
+def edit_service():
+    """Редактирование услуги."""
+    service_id = int(input("Введите ID услуги для редактирования: ").strip())
+    for service in services:
+        if service['id'] == service_id:
+            service['name'] = input(f"Введите новое название услуги (текущее: {service['name']}): ").strip() or service['name']
+            service['price'] = float(input(f"Введите новую цену услуги (текущая: {service['price']}): ").strip() or service['price'])
+            service['rating'] = float(input(f"Введите новый рейтинг услуги (текущий: {service['rating']}): ").strip() or service['rating'])
+            service['available'] = input(f"Услуга доступна? (yes/no, текущее: {'да' if service['available'] else 'нет'}): ").strip().lower() == 'yes'
+            print("Услуга успешно обновлена!\n")
+            return
+    print("Услуга с указанным ID не найдена.\n")
 
-def calculate_total_cost():
-    total_cost = sum(r['price'] for r in rooms)
-    print(f"\nОбщая стоимость всех номеров: {total_cost} руб.")
+def manage_users():
+    """Управление пользователями."""
+    print("Функционал управления пользователями пока не реализован.\n")
 
+def main():
+    while True:
+        user = authenticate()
+        if user:
+            if user['role'] == 'user':
+                user_menu(user)
+            elif user['role'] == 'admin':
+                admin_menu()
 
-current_user = authenticate()
-if current_user:
-    if current_user['role'] == 'user':
-        user_menu()
-    else:
-        print("У администратора нет действий в данной версии.")
-print("Выход из системы. До свидания!")
+if __name__ == "__main__":
+    main()
